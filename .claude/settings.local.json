@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__github__list_issues",
+      "Bash(gh issue *)",
+      "Bash(git remote *)",
+      "Read(//mnt/c/Users/PC/wsl.localhost/Ubuntu/home/walid/tenderai/docs/**)",
+      "Bash(wsl cat *)",
+      "Bash(git *)",
+      "mcp__github__issue_write"
+    ]
+  }
+}

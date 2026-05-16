@@ -1,0 +1,29 @@
+﻿# Secrets — never commit these
+.env
+*.pem
+*.key
+
+# Python
+__pycache__/*.pyc
+.venv/
+venv/
+*.egg-info/
+
+# Node
+node_modules/
+.next/
+dist/
+
+# Docker
+*.log
+
+# IDE
+.vscode/
+.idea/
+
+# Claude local overrides (personal notes — not shared)
+CLAUDE.local.md
+
+# Data
+*.db
+chroma_data/
