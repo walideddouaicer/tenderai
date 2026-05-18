@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash .claude/hooks/block-secrets.sh",
+            "command": "bash /home/walid/tenderai/.claude/hooks/block-secrets.sh",
             "timeout": 10
           }
         ]
