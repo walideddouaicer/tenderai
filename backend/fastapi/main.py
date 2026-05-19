@@ -11,3 +11,8 @@ app.include_router(query_router, prefix="/api/rag")
 @app.get("/health")
 async def health():
     return {"status": "ok"}
+
+
+@app.get("/api/rag/health")
+async def rag_health():
+    return {"status": "ok"}
