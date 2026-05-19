@@ -27,3 +27,10 @@ CLAUDE.local.md
 # Data
 *.db
 chroma_data/
+
+# Python bytecode (any depth)
+**/__pycache__/
+*.pyc
+
+# Claude Code per-user settings
+.claude/settings.local.json
