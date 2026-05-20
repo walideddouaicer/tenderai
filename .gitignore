@@ -34,3 +34,4 @@ chroma_data/
 
 # Claude Code per-user settings
 .claude/settings.local.json
+sample_pdfs/
