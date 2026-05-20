@@ -27,7 +27,7 @@ Full spec: `docs/TenderAI_CDC_v3.md` — read it when working on anything archit
 - Django 5 + DRF — sync, session auth, custom `User` (has `company_name`, `plan` fields), `VaultDocument` model
 - FastAPI — all AI inference; routes are currently 501 stubs at `backend/fastapi/routes/`
 - Next.js 14 App Router — `next.config.ts` rewrites `/api/django/*` → Django and `/api/rag/*` → FastAPI (no CORS needed)
-- GPT-4o for synthesis, `paraphrase-multilingual-mpnet-base-v2` for embeddings
+- GPT-4o for synthesis, `intfloat/multilingual-e5-base` for embeddings (512-token context; prepend `"passage: "` for docs, `"query: "` for queries per e5 spec)
 - Celery + Redis, CrewAI — Phase 2, not yet
 
 ## Key commands
@@ -108,6 +108,10 @@ Do not write production scraper code until `docs/legal_review.md` exists and is 
 
 ### 7. No CrewAI in Phase 1
 Phase 2 only. If you find yourself writing `import crewai`, stop.
+
+## Debugging and test reporting
+
+When reporting test failures or unexpected API behavior, always paste raw log lines, response bodies, and exception tracebacks verbatim — never summaries. Summaries hide the information needed to diagnose the issue.
 
 ## Docs
 
