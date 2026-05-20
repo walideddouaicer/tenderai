@@ -32,7 +32,7 @@ FS-1.2 — Multilingual Query Interface
 
 Accepts queries in French, English, or Modern Standard Arabic (MSA).
 Darija is explicitly out of scope. Most multilingual transformers are severely undertrained on Darija. Claiming Darija support without benchmarking it is a trust risk. MSA is the documented standard for Moroccan legal and administrative texts anyway.
-Embedding model: paraphrase-multilingual-mpnet-base-v2 as baseline. Must be validated against a test set before going to production (see Section 6).
+Embedding model: intfloat/multilingual-e5-base — 512-token native context, strong cross-lingual retrieval for FR/EN/MSA. Replaces paraphrase-multilingual-mpnet-base-v2, whose 128-token cap would silently truncate chunks at index time. Benchmark on MSA eval set required before Phase 1 launch (see Section 6).
 
 FS-1.3 — Mandatory Citations (Non-Negotiable Invariant)
 
@@ -125,7 +125,7 @@ Output: bid price B* that maximizes EV(B) + full sensitivity curve across bid ra
 
 4. Technical Architecture
 4.1 Technology Stack
-LayerTechnologyRationaleAuth / Admin / VaultDjango + DRFMature auth, ORM, built-in admin for vault managementAI Inference EndpointsFastAPIAsync-native for LLM calls and RAG queries; Django's sync default is friction hereFrontendNext.js (App Router) from day 1No Streamlit — any UI work must carry forwardAI OrchestrationPlain Python modules (Phase 1) → CrewAI (Phase 2+)Add CrewAI only when agents actually need to coordinate. Premature orchestration = unnecessary debugging surfaceTask QueueCelery + RedisAsync scraping and digest schedulingVector DBChromaDB (dev/Phase 1) → Pinecone (Phase 2+)Local-first for speed; abstract behind a repository interface from day 1Primary DBPostgreSQLRelational data, vault metadata, bid historyLLM (Reasoning)GPT-4oComplex synthesis, answer generationLLM (Embeddings)paraphrase-multilingual-mpnet-base-v2Cross-lingual FR/MSA-AR/EN vector space — must be benchmarkedPDF Parsingpymupdf4llm (digital) + pytesseract (OCR fallback)Structure-preserving Markdown outputContainerizationDocker + Docker ComposeReproducible environments
+LayerTechnologyRationaleAuth / Admin / VaultDjango + DRFMature auth, ORM, built-in admin for vault managementAI Inference EndpointsFastAPIAsync-native for LLM calls and RAG queries; Django's sync default is friction hereFrontendNext.js (App Router) from day 1No Streamlit — any UI work must carry forwardAI OrchestrationPlain Python modules (Phase 1) → CrewAI (Phase 2+)Add CrewAI only when agents actually need to coordinate. Premature orchestration = unnecessary debugging surfaceTask QueueCelery + RedisAsync scraping and digest schedulingVector DBChromaDB (dev/Phase 1) → Pinecone (Phase 2+)Local-first for speed; abstract behind a repository interface from day 1Primary DBPostgreSQLRelational data, vault metadata, bid historyLLM (Reasoning)GPT-4oComplex synthesis, answer generationLLM (Embeddings)intfloat/multilingual-e5-baseCross-lingual FR/MSA-AR/EN vector space — 512-token native context; resolves the "must be validated" clause (paraphrase-multilingual-mpnet-base-v2's 128-token cap would have silently truncated chunks at index time)PDF Parsingpymupdf4llm (digital) + pytesseract (OCR fallback)Structure-preserving Markdown outputContainerizationDocker + Docker ComposeReproducible environments
 Note on the vector DB abstraction: Wrap ChromaDB and Pinecone behind a VectorStore interface from day 1. The Phase 1→2 migration should be a one-line config change, not a refactor.
 4.2 Service Split: Django vs FastAPI
 Django (port 8000)          FastAPI (port 8001)
@@ -173,7 +173,7 @@ Report: predicted vs. actual win rate at each decile of bid price.
 
 
 7. Risks & Mitigations
-RiskSeverityMitigationScanned PDFs with no digital text layer🔴 CriticalOCR fallback via pytesseract; flag confidence to user; prioritize digital-text portalsNegation misses in legal clauses ("must NOT exceed")🔴 CriticalDedicated negation test cases in RAG eval set; display raw chunk to user alwaysmarchespublics.gov.ma ToS violation🔴 CriticalLegal sign-off before scraper code enters production; robots.txt compliance enforcedMultilingual model underperforms on MSA Arabic🟡 HighBenchmark paraphrase-multilingual-mpnet-base-v2 on MSA queries before Phase 1 launch; have fallback model readyInsufficient historical bid data for Quant Engine🟡 HighBegin data collection in Phase 2; launch Quant only with ≥500 records; start with percentile model as safe fallbackPortal structure changes break scraper🟡 HighSchema validation on every scrape run; alert on extraction failure; store raw HTML for debuggingLLM hallucination in citation🔴 CriticalAlways display raw source chunk alongside AI answer; answer blocked if no chunk retrieved
+RiskSeverityMitigationScanned PDFs with no digital text layer🔴 CriticalOCR fallback via pytesseract; flag confidence to user; prioritize digital-text portalsNegation misses in legal clauses ("must NOT exceed")🔴 CriticalDedicated negation test cases in RAG eval set; display raw chunk to user alwaysmarchespublics.gov.ma ToS violation🔴 CriticalLegal sign-off before scraper code enters production; robots.txt compliance enforcedMultilingual model underperforms on MSA Arabic🟡 Highintfloat/multilingual-e5-base selected; benchmark on MSA eval set before Phase 1 launch to confirm ≥85% answer correctness thresholdInsufficient historical bid data for Quant Engine🟡 HighBegin data collection in Phase 2; launch Quant only with ≥500 records; start with percentile model as safe fallbackPortal structure changes break scraper🟡 HighSchema validation on every scrape run; alert on extraction failure; store raw HTML for debuggingLLM hallucination in citation🔴 CriticalAlways display raw source chunk alongside AI answer; answer blocked if no chunk retrieved
 
 8. Non-Functional Requirements
 
@@ -221,6 +221,6 @@ Prerequisite: ≥500 validated historical bid records.
 
 
 10. Open Questions (Must Be Resolved)
-#QuestionOwnerDeadline1Does scraping marchespublics.gov.ma comply with ToS?LegalBefore Phase 2 start2Primary source for résultats d'adjudication — BOME, portal PDFs, or manual?ProductEnd of Phase 13Does paraphrase-multilingual-mpnet-base-v2 meet accuracy bar on MSA Arabic test set?EngineeringWeek 4 of Phase 14SaaS pricing model — subscription tiers vs. per-bid pricing?ProductBefore Phase 2
+#QuestionOwnerDeadline1Does scraping marchespublics.gov.ma comply with ToS?LegalBefore Phase 2 start2Primary source for résultats d'adjudication — BOME, portal PDFs, or manual?ProductEnd of Phase 13Does intfloat/multilingual-e5-base meet accuracy bar on MSA Arabic test set?EngineeringWeek 4 of Phase 14SaaS pricing model — subscription tiers vs. per-bid pricing?ProductBefore Phase 2
 
 Next deliverable: PostgreSQL ERD + VectorStore interface definition.
